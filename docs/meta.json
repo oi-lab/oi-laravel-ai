@@ -1,0 +1,7 @@
+{
+    "type": "package",
+    "name": "oi-lab/oi-laravel-ai",
+    "title": "OI Laravel AI",
+    "description": "AI usage tracking, cost reporting, provider/model catalog and agent prompt registry",
+    "order": 15
+}

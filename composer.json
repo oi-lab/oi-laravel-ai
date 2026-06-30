@@ -1,0 +1,88 @@
+{
+    "name": "oi-lab/oi-laravel-ai",
+    "description": "AI backend for Laravel: provider/model catalog with pricing, request usage tracking and cost reporting, agent system-prompt registry and a self-updating tariff registry.",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "ai",
+        "llm",
+        "usage",
+        "pricing",
+        "prompts"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Olivier Lacombe",
+            "email": "olivier@olacombe.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^12.0|^13.0",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/http": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0",
+        "laravel/ai": "^0.7|^0.8",
+        "spatie/laravel-data": "^4.23"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.29",
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^3.0|^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0|^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OiLab\\OiLaravelAi\\": "src/",
+            "OiLab\\OiLaravelAi\\Database\\Factories\\": "database/factories/",
+            "OiLab\\OiLaravelAi\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OiLab\\OiLaravelAi\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "sync-ai-skills": [
+            "@php scripts/sync-ai-skills.php"
+        ],
+        "post-autoload-dump": [
+            "@php scripts/sync-ai-skills.php"
+        ],
+        "test": [
+            "@php vendor/bin/pest"
+        ],
+        "lint": [
+            "@php vendor/bin/pint"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "OiLab\\OiLaravelAi\\OiLaravelAiServiceProvider"
+            ]
+        },
+        "oi-lab": {
+            "skills": [
+                {
+                    "name": "oilab-laravel-ai",
+                    "description": "Track AI usage and cost, manage agent system prompts and the provider/model catalog",
+                    "path": "resources/stubs/ai-skill.md",
+                    "rules": "resources/stubs/claude-rules.md",
+                    "section": "oi-lab/oi-laravel-ai rules"
+                }
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "providers": [
+        { "code": "anthropic", "name": "Anthropic", "owner": "Anthropic PBC" },
+        { "code": "openai", "name": "OpenAI", "owner": "OpenAI" },
+        { "code": "mistral", "name": "Mistral", "owner": "Mistral AI" },
+        { "code": "ollama", "name": "Ollama", "owner": "Ollama" },
+        { "code": "gemini", "name": "Gemini", "owner": "Google" }
+    ],
+    "models": [
+        { "code": "claude-opus-4-8", "name": "Claude Opus 4.8", "type": "text", "cost_input": 15.0, "cost_output": 75.0, "provider": "anthropic" },
+        { "code": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6", "type": "text", "cost_input": 3.0, "cost_output": 15.0, "provider": "anthropic" },
+        { "code": "claude-haiku-4-5-20251001", "name": "Claude Haiku 4.5", "type": "text", "cost_input": 0.8, "cost_output": 4.0, "provider": "anthropic" },
+        { "code": "gpt-4o", "name": "GPT-4o", "type": "text", "cost_input": 5.0, "cost_output": 15.0, "provider": "openai" },
+        { "code": "gpt-4o-mini", "name": "GPT-4o Mini", "type": "text", "cost_input": 0.15, "cost_output": 0.6, "provider": "openai" },
+        { "code": "text-embedding-3-small", "name": "Embedding 3 Small", "type": "embeddings", "cost_input": 0.02, "cost_output": 0, "provider": "openai" },
+        { "code": "text-embedding-3-large", "name": "Embedding 3 Large", "type": "embeddings", "cost_input": 0.13, "cost_output": 0, "provider": "openai" },
+        { "code": "mistral-large-latest", "name": "Mistral Large", "type": "text", "cost_input": 2.0, "cost_output": 6.0, "provider": "mistral" },
+        { "code": "mistral-medium-2508", "name": "Mistral Medium 3.1", "type": "text", "cost_input": 0.4, "cost_output": 2, "provider": "mistral" },
+        { "code": "mistral-medium-3-5", "name": "Mistral Medium 3.5", "type": "text", "cost_input": 1.5, "cost_output": 7.5, "provider": "mistral" },
+        { "code": "mistral-small-latest", "name": "Mistral Small", "type": "text", "cost_input": 0.1, "cost_output": 0.3, "provider": "mistral" },
+        { "code": "mistral-embed", "name": "Mistral Embed", "type": "embeddings", "cost_input": 0.1, "cost_output": 0, "provider": "mistral" },
+        { "code": "gemini-2.5-pro", "name": "Gemini 2.5 Pro", "type": "text", "cost_input": 1.25, "cost_output": 10.0, "provider": "gemini" },
+        { "code": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "type": "text", "cost_input": 0.15, "cost_output": 0.6, "provider": "gemini" },
+        { "code": "text-embedding-004", "name": "Text Embedding 004", "type": "embeddings", "cost_input": 0.0, "cost_output": 0.0, "provider": "gemini" }
+    ]
+}
