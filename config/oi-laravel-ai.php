@@ -1,6 +1,5 @@
 <?php
 
-use App\Adapters\AiSettingStore;
 use App\Models\AgentRun;
 use App\Models\Project;
 
@@ -28,13 +27,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | The package reads and writes team-scoped / global settings (default model
-    | per agent, system prompt overrides) through the SettingStore contract. The
-    | host application binds its own implementation here. Set to null to disable
-    | settings seeding entirely (the catalog seeding still works).
+    | per agent, system prompt overrides) through the SettingStore contract.
+    | Leave null to auto-detect: when oi-lab/oi-laravel-settings is installed its
+    | adapter is wired automatically. Bind a class here to use a custom store, or
+    | set an empty value to disable settings seeding (catalog seeding still runs).
     |
     */
 
-    'setting_store' => env('OI_AI_SETTING_STORE', AiSettingStore::class),
+    'setting_store' => env('OI_AI_SETTING_STORE'),
 
     /*
     |--------------------------------------------------------------------------

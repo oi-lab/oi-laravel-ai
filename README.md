@@ -50,7 +50,7 @@ php artisan migrate
 |-----|-------------|
 | `models.project` | Host `Project` model the `AiRequest.project_id` FK resolves to. |
 | `models.agent_run` | Host `AgentRun` model the `AiRequest.agent_run_id` FK resolves to. |
-| `setting_store` | Class string implementing `SettingStore`, used to persist default models and prompt overrides. Set to `null` to disable settings seeding. |
+| `setting_store` | Class implementing `SettingStore`, used to persist default models and prompt overrides. Leave `null` to auto-detect: the `oi-lab/oi-laravel-settings` adapter is wired automatically when that package is installed. |
 | `context_binding` | Container binding resolving the "current team" used to scope settings. |
 | `registry.path` | Writable, host-owned registry copy used by the seeder and `ai:update-registry`. Falls back to the bundled `assets/registry.json` when null. |
 | `registry.url` | Canonical raw URL `ai:update-registry` fetches a fresh registry from. |
@@ -132,7 +132,7 @@ The package never hardcodes your domain models. Override the bindings in config 
 ],
 ```
 
-Implement `OiLab\OiLaravelAi\Contracts\SettingStore` to let the seeder persist default models and prompt overrides, then point `setting_store` at it.
+Settings (default models, prompt overrides) are persisted through the `SettingStore` contract. Install the recommended `oi-lab/oi-laravel-settings` (listed under `suggest`) and its adapter is wired automatically. To use your own storage, implement `OiLab\OiLaravelAi\Contracts\SettingStore` and point `setting_store` at it.
 
 ## Testing
 

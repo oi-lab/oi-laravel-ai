@@ -24,7 +24,21 @@ The `ai_requests` migration adds UUID foreign keys to `projects` and `agent_runs
 
 ## 2. The SettingStore contract
 
-The package reads and writes team-scoped / global settings (default model per agent, prompt overrides) through a contract you implement:
+The package reads and writes team-scoped / global settings (default model per agent, prompt overrides) through the `SettingStore` contract. The AI team id maps directly onto a settings scope (`null` = global).
+
+### Recommended: oi-lab/oi-laravel-settings
+
+Install the recommended backend (listed under `suggest`) and it is **wired automatically** — no config, no adapter to write:
+
+```bash
+composer require oi-lab/oi-laravel-settings
+```
+
+When `setting_store` is left `null` and that package is present, the provider binds `OiLab\OiLaravelAi\Stores\OiLaravelSettingsStore`, persisting values in the shared, scoped, typed Setting store.
+
+### Custom adapter
+
+To use your own storage instead, implement the contract:
 
 ```php
 namespace App\Adapters;
@@ -47,7 +61,7 @@ Bind it through config:
 'setting_store' => \App\Adapters\AiSettingStore::class,
 ```
 
-The provider resolves this lazily, so leaving it `null` simply disables the settings-dependent seeding.
+Resolution order: an explicit `setting_store` class wins; otherwise the oi-laravel-settings adapter is used when installed; otherwise it resolves to `null`, which simply disables the settings-dependent seeding (catalog seeding still runs).
 
 ## 3. Seeding defaults
 

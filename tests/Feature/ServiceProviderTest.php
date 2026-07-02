@@ -27,3 +27,22 @@ it('does not resolve a setting store when none is configured', function () {
 
     expect(app(SettingStore::class))->toBeNull();
 });
+
+it('resolves the setting store configured in config', function () {
+    $store = new class implements SettingStore
+    {
+        public function get(string $key, ?string $teamId = null): mixed
+        {
+            return null;
+        }
+
+        public function set(string $key, mixed $value, string $label, string $type = 'string', ?string $teamId = null): void {}
+
+        public function forget(string $key, ?string $teamId = null): void {}
+    };
+
+    app()->instance('custom.ai.store', $store);
+    config()->set('oi-laravel-ai.setting_store', 'custom.ai.store');
+
+    expect(app(SettingStore::class))->toBe($store);
+});

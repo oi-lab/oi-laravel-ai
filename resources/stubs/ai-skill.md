@@ -7,7 +7,7 @@ This package is the AI backend for a Laravel application. It does four things:
 3. **Cost reporting** — aggregates recorded usage into per-project, per-agent, and per-model cost summaries.
 4. **Prompt registry** — a single source of truth for the agents' system prompts, with `:variable` placeholder compilation.
 
-The package is host-agnostic: it references the host app's `Project` and `AgentRun` models through config, and persists settings through a `SettingStore` contract the host binds.
+The package is host-agnostic: it references the host app's `Project` and `AgentRun` models through config, and persists settings through a `SettingStore` contract — auto-wired to `oi-lab/oi-laravel-settings` when installed, or a host-provided implementation.
 
 ## Core concepts
 
@@ -69,7 +69,7 @@ php artisan vendor:publish --tag=oi-laravel-ai-migrations
 Key `oi-laravel-ai` config:
 
 - `models.project` / `models.agent_run` — host model classes the `AiRequest` FKs resolve to.
-- `setting_store` — the host's `OiLab\OiLaravelAi\Contracts\SettingStore` implementation (class string). Set to `null` to disable settings seeding; catalog seeding still runs.
+- `setting_store` — `OiLab\OiLaravelAi\Contracts\SettingStore` implementation (class string). Leave `null` to auto-detect: the `oi-lab/oi-laravel-settings` adapter is wired automatically when installed (listed under `suggest`); with no store bound, catalog seeding still runs but settings seeding is skipped.
 - `context_binding` — container binding resolving the "current team" used to scope settings.
 - `registry.path` — writable, host-owned copy of the registry used by the seeder and `ai:update-registry`; falls back to the bundled asset when null.
 - `registry.url` — canonical raw URL `ai:update-registry` fetches a fresh registry from.
@@ -77,7 +77,7 @@ Key `oi-laravel-ai` config:
 ## Host integration checklist
 
 - Provide `projects` and `agent_runs` tables (UUID keys) before running the package migrations — the `ai_requests` FKs reference them.
-- Implement `SettingStore` and point `setting_store` at it (or set it to `null`).
+- Install `oi-lab/oi-laravel-settings` for zero-config settings, or implement `SettingStore` and point `setting_store` at it (or leave it `null`).
 - Bind the `context_binding` if you scope settings per team.
 
 ## Updating the AI skill

@@ -9,6 +9,8 @@ use OiLab\OiLaravelAi\Console\Commands\InstallAiSkillCommand;
 use OiLab\OiLaravelAi\Console\Commands\UpdateAiRegistryCommand;
 use OiLab\OiLaravelAi\Contracts\SettingStore;
 use OiLab\OiLaravelAi\Listeners\AiRequestListener;
+use OiLab\OiLaravelAi\Stores\OiLaravelSettingsStore;
+use OiLab\OiLaravelSettings\SettingsManager;
 
 class OiLaravelAiServiceProvider extends ServiceProvider
 {
@@ -49,6 +51,10 @@ class OiLaravelAiServiceProvider extends ServiceProvider
     {
         $this->app->bind(SettingStore::class, function ($app) {
             $implementation = config('oi-laravel-ai.setting_store');
+
+            if ($implementation === null && class_exists(SettingsManager::class)) {
+                $implementation = OiLaravelSettingsStore::class;
+            }
 
             return $implementation ? $app->make($implementation) : null;
         });
