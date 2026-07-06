@@ -15,6 +15,16 @@ composer require oi-lab/oi-laravel-ai
 
 The package auto-discovers and registers its service provider — no manual registration required.
 
+## Assisted installation (recommended)
+
+The interactive installer walks you through every step below — publishing the config, capturing the host models, setting store and registry URL into your `.env`, running the migrations, and seeding the catalog. Each step is confirmed, so it is safe to re-run:
+
+```bash
+php artisan ai:install
+```
+
+Pass `--force` to overwrite already-published files. Prefer the manual steps below if you want full control.
+
 ## Publish configuration and migrations
 
 ```bash

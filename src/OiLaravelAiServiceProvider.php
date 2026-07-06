@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Ai\Events\AgentPrompted;
 use OiLab\OiLaravelAi\Console\Commands\InstallAiSkillCommand;
+use OiLab\OiLaravelAi\Console\Commands\InstallCommand;
 use OiLab\OiLaravelAi\Console\Commands\UpdateAiRegistryCommand;
 use OiLab\OiLaravelAi\Contracts\SettingStore;
 use OiLab\OiLaravelAi\Listeners\AiRequestListener;
@@ -35,6 +36,7 @@ class OiLaravelAiServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                InstallCommand::class,
                 UpdateAiRegistryCommand::class,
                 InstallAiSkillCommand::class,
             ]);

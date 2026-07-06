@@ -48,6 +48,10 @@ The service provider wires `AiRequestListener` to `Laravel\Ai\Events\AgentPrompt
 ## Commands
 
 ```bash
+# Assisted, interactive installation (laravel/prompts): publish config, capture host
+# models / setting store / registry into .env, run migrations, seed the catalog.
+php artisan ai:install [--force]
+
 # Refresh the catalog + pricing from the remote registry URL and persist it locally.
 php artisan ai:update-registry [--url=...] [--no-write]
 

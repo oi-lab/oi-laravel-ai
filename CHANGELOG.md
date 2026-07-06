@@ -2,6 +2,13 @@
 
 All notable changes to `oi-lab/oi-laravel-ai` will be documented in this file.
 
+## [1.1.0] - 2026-07-06
+
+### Added
+
+- `ai:install` — an assisted, interactive installation command (built on `laravel/prompts`) that publishes the config, captures the host models / setting store / registry URL into `.env`, warns about missing `projects` / `agent_runs` tables, runs the migrations, seeds the provider/model catalog, and optionally installs the AI assistant skill. Every step is confirmed, so it is safe to re-run.
+- Explicit `laravel/prompts` dependency.
+
 ## [1.0.0] - 2026-06-30
 
 ### Added

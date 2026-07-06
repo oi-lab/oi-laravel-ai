@@ -1,6 +1,6 @@
 <img src="./assets/github-preview.png" alt="OI Laravel AI" width="100%" />
 
-# OI Laravel AI
+# OI Laravel AI Add-on
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/oi-lab/oi-laravel-ai.svg)](https://packagist.org/packages/oi-lab/oi-laravel-ai)
 [![Total Downloads](https://img.shields.io/packagist/dt/oi-lab/oi-laravel-ai.svg)](https://packagist.org/packages/oi-lab/oi-laravel-ai)
@@ -32,7 +32,15 @@ composer require oi-lab/oi-laravel-ai
 
 The package auto-discovers and registers itself via Laravel's service provider mechanism.
 
-Publish the configuration and migrations:
+### Assisted installation (recommended)
+
+Run the interactive installer and answer the prompts — it publishes the config, captures the host models / setting store / registry into your `.env`, runs the migrations, and seeds the catalog. Every step is confirmed, so it is safe to re-run:
+
+```bash
+php artisan ai:install
+```
+
+### Manual installation
 
 ```bash
 php artisan vendor:publish --tag=oi-laravel-ai-config
@@ -117,6 +125,9 @@ The `app_name` global is injected automatically. Use `AiPromptVariableRegistry::
 ## Commands
 
 ```bash
+# Assisted, interactive installation (publish, configure, migrate, seed).
+php artisan ai:install [--force]
+
 # Refresh the catalog + pricing from the configured remote registry URL.
 php artisan ai:update-registry [--url=https://…] [--no-write]
 ```
