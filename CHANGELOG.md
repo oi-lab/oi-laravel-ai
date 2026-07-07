@@ -2,6 +2,11 @@
 
 All notable changes to `oi-lab/oi-laravel-ai` will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- Documentation: the "How it fits together" architecture diagram in `docs/getting-started/_index.md` is now authored as a Mermaid `flowchart` block instead of ASCII art, matching the Mermaid diagram standard rendered by `oi-lab/oi-laravel-documentation`.
+
 ## [1.1.0] - 2026-07-06
 
 ### Added

@@ -16,12 +16,14 @@ OI Laravel AI is the AI backend for a Laravel application built on top of [`lara
 
 ## How it fits together
 
-```
-laravel/ai  ──AgentPrompted──▶  AiRequestListener  ──▶  ai_requests
-                                                          │
-assets/registry.json ──AiCatalog──▶ ai_providers / ai_models
-                                                          │
-                                          AiUsageReporter ─┴─▶ cost summaries
+```mermaid
+flowchart LR
+    LA["laravel/ai"] -->|AgentPrompted| ARL[AiRequestListener]
+    ARL --> AR[(ai_requests)]
+    REG["assets/registry.json"] -->|AiCatalog| PM[(ai_providers / ai_models)]
+    AR --> AUR[AiUsageReporter]
+    PM --> AUR
+    AUR --> CS[cost summaries]
 ```
 
 The package is deliberately host-agnostic: it links recorded requests back to your own `Project` and `AgentRun` models through configuration, and never persists settings directly — it delegates to a `SettingStore` contract your application implements.
