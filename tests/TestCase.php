@@ -6,6 +6,7 @@ use OiLab\OiLaravelAi\OiLaravelAiServiceProvider;
 use OiLab\OiLaravelAi\Tests\Fixtures\AgentRun;
 use OiLab\OiLaravelAi\Tests\Fixtures\Project;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\LaravelData\LaravelDataServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
@@ -15,6 +16,7 @@ abstract class TestCase extends Orchestra
     protected function getPackageProviders($app): array
     {
         return [
+            LaravelDataServiceProvider::class,
             OiLaravelAiServiceProvider::class,
         ];
     }

@@ -30,9 +30,9 @@ The package is deliberately host-agnostic: it links recorded requests back to yo
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.3+
 - Laravel 12 or 13
-- `laravel/ai` 0.7+
+- `laravel/ai` 0.8 to 0.10
 
 ## Next steps
 

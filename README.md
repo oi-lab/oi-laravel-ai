@@ -20,9 +20,9 @@ The AI backend for your Laravel application. It maintains a provider/model catal
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.3+
 - Laravel 12 or 13
-- [`laravel/ai`](https://github.com/laravel/ai) 0.7+
+- [`laravel/ai`](https://github.com/laravel/ai) 0.8 to 0.10
 
 ## Installation
 
