@@ -72,7 +72,9 @@ php artisan vendor:publish --tag=oi-laravel-ai-migrations
 
 Key `oi-laravel-ai` config:
 
-- `models.project` / `models.agent_run` — host model classes the `AiRequest` FKs resolve to.
+- `relations.project` / `relations.agent_run` — table names the `ai_requests` FKs and `AiRequest::project()` / `agentRun()` use; `null` (default) = no FK and an empty relation.
+- `models.project` / `models.agent_run` — host model classes those relations resolve to when configured.
+- `store_payloads` / `redacted_prompt_types` — redact the system prompt, input and response (stored as `sha256:<hash> (<length> car.)`); an agent may implement `Contracts\HasPromptType` to declare its own prompt type.
 - `setting_store` — `OiLab\OiLaravelAi\Contracts\SettingStore` implementation (class string). Leave `null` to auto-detect: the `oi-lab/oi-laravel-settings` adapter is wired automatically when installed (listed under `suggest`); with no store bound, catalog seeding still runs but settings seeding is skipped.
 - `context_binding` — container binding resolving the "current team" used to scope settings.
 - `registry.path` — writable, host-owned copy of the registry used by the seeder and `ai:update-registry`; falls back to the bundled asset when null.
@@ -80,7 +82,7 @@ Key `oi-laravel-ai` config:
 
 ## Host integration checklist
 
-- Provide `projects` and `agent_runs` tables (UUID keys) before running the package migrations — the `ai_requests` FKs reference them.
+- `projects` / `agent_runs` tables are optional: declare them in `relations.*` (before migrating) to get the foreign keys and relations; upgrading from 1.2.x requires setting both keys to keep the old schema.
 - Install `oi-lab/oi-laravel-settings` for zero-config settings, or implement `SettingStore` and point `setting_store` at it (or leave it `null`).
 - Bind the `context_binding` if you scope settings per team.
 

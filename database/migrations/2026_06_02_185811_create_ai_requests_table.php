@@ -24,11 +24,19 @@ return new class extends Migration
             $table->unsignedInteger('tokens_reasoning')->default(0);
             $table->unsignedInteger('duration')->default(0);
             $table->json('prompt_schema')->nullable();
-            $table->foreignUuid('project_id')->nullable()->constrained()->nullOnDelete();
+            $table->uuid('project_id')->nullable();
             $table->foreignId('ai_provider_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('ai_model_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignUuid('agent_run_id')->nullable()->constrained('agent_runs')->nullOnDelete();
+            $table->uuid('agent_run_id')->nullable()->index();
             $table->timestamp('created_at')->useCurrent();
+
+            foreach (['project_id' => 'project', 'agent_run_id' => 'agent_run'] as $column => $relation) {
+                $related = config("oi-laravel-ai.relations.{$relation}");
+
+                if ($related !== null && Schema::hasTable($related)) {
+                    $table->foreign($column)->references('id')->on($related)->nullOnDelete();
+                }
+            }
 
             $table->index('prompt_type');
             $table->index(['project_id', 'created_at']);

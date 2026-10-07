@@ -14,13 +14,17 @@ OI Laravel AI is designed to plug into an existing application without imposing 
 Point the config bindings at your own models:
 
 ```php
+'relations' => [
+    'project' => 'projects',
+    'agent_run' => 'agent_runs',
+],
 'models' => [
     'project' => \App\Models\Project::class,
     'agent_run' => \App\Models\AgentRun::class,
 ],
 ```
 
-The `ai_requests` migration adds UUID foreign keys to `projects` and `agent_runs`. Both are nullable and `nullOnDelete`, so recording never fails when a request has no project or run.
+`ai_requests` always has nullable UUID `project_id` and `agent_run_id` columns. When `relations.*` names a table that exists at migration time, the migration adds a nullable `nullOnDelete` foreign key to it, and `AiRequest::project()` / `agentRun()` resolve to the `models.*` class. When a relation is `null` (the default) there is no foreign key and the relation is always empty (`$request->project` is `null`), so no host class is required.
 
 ## 2. The SettingStore contract
 

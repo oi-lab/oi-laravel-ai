@@ -37,7 +37,7 @@ class AiRequest extends Model
      */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(config('oi-laravel-ai.models.project'));
+        return $this->hostRelation('project', 'project_id');
     }
 
     /**
@@ -61,7 +61,23 @@ class AiRequest extends Model
      */
     public function agentRun(): BelongsTo
     {
-        return $this->belongsTo(config('oi-laravel-ai.models.agent_run'));
+        return $this->hostRelation('agent_run', 'agent_run_id');
+    }
+
+    /**
+     * Relation to a host model, active only when `oi-laravel-ai.relations.*`
+     * declares it. Otherwise an always-empty relation, so `$request->project`
+     * is null (and eager loading is harmless) without any host class.
+     *
+     * @return BelongsTo<Model, $this>
+     */
+    private function hostRelation(string $relation, string $foreignKey): BelongsTo
+    {
+        if (config("oi-laravel-ai.relations.{$relation}") !== null) {
+            return $this->belongsTo(config("oi-laravel-ai.models.{$relation}"), $foreignKey);
+        }
+
+        return $this->belongsTo(self::class, $foreignKey, $foreignKey)->whereRaw('1 = 0');
     }
 
     /**

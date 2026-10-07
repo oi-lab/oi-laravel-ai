@@ -32,6 +32,8 @@ abstract class TestCase extends Orchestra
         ]);
 
         $app['config']->set('oi-laravel-ai.setting_store', null);
+        $app['config']->set('oi-laravel-ai.relations.project', 'projects');
+        $app['config']->set('oi-laravel-ai.relations.agent_run', 'agent_runs');
         $app['config']->set('oi-laravel-ai.models.project', Project::class);
         $app['config']->set('oi-laravel-ai.models.agent_run', AgentRun::class);
     }

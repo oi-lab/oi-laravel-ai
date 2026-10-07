@@ -1,7 +1,9 @@
 <?php
 
+use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Providers\TextProvider;
 use Laravel\Ai\Events\AgentPrompted;
+use Laravel\Ai\Events\PromptingAgent;
 use Laravel\Ai\Prompts\AgentPrompt;
 use Laravel\Ai\Responses\AgentResponse;
 use Laravel\Ai\Responses\Data\Meta;
@@ -9,6 +11,7 @@ use Laravel\Ai\Responses\Data\Usage;
 use OiLab\OiLaravelAi\Models\AiModel;
 use OiLab\OiLaravelAi\Models\AiProvider;
 use OiLab\OiLaravelAi\Models\AiRequest;
+use OiLab\OiLaravelAi\Tests\Fixtures\RedactedAgent;
 use OiLab\OiLaravelAi\Tests\Fixtures\TrackedAgent;
 
 /**
@@ -16,10 +19,10 @@ use OiLab\OiLaravelAi\Tests\Fixtures\TrackedAgent;
  * objects, so they break if the SDK changes the prompt, response, usage or meta
  * shape the listener reads from.
  */
-function agentPromptedEvent(string $provider = 'openai', string $model = 'gpt-5'): AgentPrompted
+function agentPromptedEvent(string $provider = 'openai', string $model = 'gpt-5', ?Agent $agent = null): AgentPrompted
 {
     $prompt = new AgentPrompt(
-        agent: new TrackedAgent,
+        agent: $agent ?? new TrackedAgent,
         prompt: 'Summarize the release notes.',
         attachments: [],
         provider: Mockery::mock(TextProvider::class),
@@ -78,4 +81,56 @@ it('records a request even when the provider is unknown to the catalog', functio
     expect($request->ai_provider_id)->toBeNull()
         ->and($request->ai_model_id)->toBeNull()
         ->and($request->tokens_input)->toBe(120);
+});
+
+it('redacts the payloads of a listed prompt type but keeps tokens and model', function () {
+    config()->set('oi-laravel-ai.redacted_prompt_types', ['crm.mail']);
+
+    event(agentPromptedEvent(agent: new RedactedAgent));
+
+    $request = AiRequest::sole();
+
+    expect($request->prompt_type)->toBe('crm.mail')
+        ->and($request->prompt_system)->toBe('sha256:'.hash('sha256', 'You write a prospecting email.').' (30 car.)')
+        ->and($request->prompt_input)->toBe('sha256:'.hash('sha256', 'Summarize the release notes.').' (28 car.)')
+        ->and($request->response)->toBe('sha256:'.hash('sha256', 'Here is the summary.').' (20 car.)')
+        ->and($request->tokens_input)->toBe(120)
+        ->and($request->tokens_output)->toBe(45);
+});
+
+it('keeps the payloads of an unlisted prompt type', function () {
+    config()->set('oi-laravel-ai.redacted_prompt_types', ['crm.mail']);
+
+    event(agentPromptedEvent());
+
+    expect(AiRequest::sole()->response)->toBe('Here is the summary.');
+});
+
+it('redacts every payload when store_payloads is false', function () {
+    config()->set('oi-laravel-ai.store_payloads', false);
+
+    event(agentPromptedEvent());
+
+    $request = AiRequest::sole();
+
+    expect($request->prompt_system)->toStartWith('sha256:')
+        ->and($request->prompt_input)->toStartWith('sha256:')
+        ->and($request->response)->toStartWith('sha256:')
+        ->and($request->tokens_input)->toBe(120);
+});
+
+it('measures the real duration between the prompting and prompted events', function () {
+    $prompted = agentPromptedEvent();
+
+    event(new PromptingAgent($prompted->invocationId, $prompted->prompt));
+    usleep(30_000);
+    event($prompted);
+
+    expect(AiRequest::sole()->duration)->toBeGreaterThanOrEqual(30);
+});
+
+it('records a zero duration when the start of the invocation was not seen', function () {
+    event(agentPromptedEvent());
+
+    expect(AiRequest::sole()->duration)->toBe(0);
 });

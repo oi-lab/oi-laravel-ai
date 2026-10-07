@@ -91,7 +91,7 @@ class InstallCommand extends Command
             label: 'Host Project model (ai_requests.project_id foreign key)',
             placeholder: 'App\\Models\\Project',
             default: (string) config('oi-laravel-ai.models.project', 'App\\Models\\Project'),
-            hint: 'The UUID-keyed model AI requests are scoped to. Leave the default if you have none.',
+            hint: 'Only used when oi-laravel-ai.relations.project names a table. Leave the default if you have none.',
         );
 
         $agentRun = text(
@@ -188,14 +188,17 @@ class InstallCommand extends Command
     private function warnAboutMissingHostTables(): void
     {
         $missing = array_values(array_filter(
-            ['projects', 'agent_runs'],
+            array_filter([
+                config('oi-laravel-ai.relations.project'),
+                config('oi-laravel-ai.relations.agent_run'),
+            ]),
             static fn (string $table): bool => ! Schema::hasTable($table),
         ));
 
         if ($missing !== []) {
             warning(
-                'ai_requests foreign-keys to ['.implode(', ', $missing).'], which do not exist yet. '
-                .'Create those tables (or publish and adjust the migration to drop those foreign keys) before migrating.'
+                'oi-laravel-ai.relations declares ['.implode(', ', $missing).'], which do not exist yet: '
+                .'their foreign keys will be skipped by the migration. Create those tables before migrating to get them.'
             );
         }
     }
