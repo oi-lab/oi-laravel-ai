@@ -13,8 +13,9 @@ The service provider registers `AiRequestListener` on `Laravel\Ai\Events\AgentPr
 
 For each prompt the listener stores:
 
-- `prompt_type` — the agent class basename (e.g. `DocWriterAgent`).
-- `prompt_system`, `prompt_input`, `response` — truncated to 10 000 characters.
+- `prompt_type` — the agent class basename (e.g. `DocWriterAgent`), or the value of `promptType()` when the agent implements `HasPromptType`.
+- `prompt_system`, `prompt_input`, `response` — truncated to 10 000 characters, or replaced with `sha256:<hash> (<length> car.)` for redacted prompt types (see the `store_payloads` and `redacted_prompt_types` configuration).
+- `duration` — real duration of the call in milliseconds, measured between the `PromptingAgent` and `AgentPrompted` events (`0` if the start was not seen).
 - Token counts — `tokens_input`, `tokens_output`, `tokens_cache_write`, `tokens_cache_read`, `tokens_reasoning`.
 - `ai_provider_id` / `ai_model_id` — mapped back to the catalog from the response's provider and model codes.
 - `project_id` — read from the agent's `project` relation when available.

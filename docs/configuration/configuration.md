@@ -40,6 +40,39 @@ The package never persists settings itself — it delegates to your implementati
 
 The container binding resolving the "current team" used to scope settings. Your application is responsible for binding it.
 
+## Optional host relations
+
+```php
+'relations' => [
+    'project' => env('OI_AI_PROJECT_TABLE'),
+    'agent_run' => env('OI_AI_AGENT_RUN_TABLE'),
+],
+```
+
+The table `ai_requests.project_id` / `agent_run_id` reference. `null` (default) means no foreign key and an empty `AiRequest::project()` / `agentRun()` relation. Set `projects` / `agent_runs` to restore the 1.2.x schema (the foreign key is only added if the table exists at migration time).
+
+## Payload storage and redaction
+
+```php
+'store_payloads' => env('OI_AI_STORE_PAYLOADS', true),
+'redacted_prompt_types' => ['crm.mail', 'crm.reply'],
+```
+
+- `store_payloads` — set to `false` to never store the system prompt, input and response.
+- `redacted_prompt_types` — prompt types whose payloads are redacted (exact match, `*` wildcards allowed). A redacted text is stored as `sha256:<hash> (<length> car.)`; tokens, model, provider and duration are still recorded.
+
+The prompt type is the agent class basename. An agent can declare its own by implementing `OiLab\OiLaravelAi\Contracts\HasPromptType`:
+
+```php
+class MailAgent implements Agent, HasPromptType
+{
+    public function promptType(): string
+    {
+        return 'crm.mail';
+    }
+}
+```
+
 ## Catalog registry
 
 ```php
@@ -56,6 +89,9 @@ The container binding resolving the "current team" used to scope settings. Your 
 
 | Variable | Config key |
 |----------|------------|
+| `OI_AI_PROJECT_TABLE` | `relations.project` |
+| `OI_AI_AGENT_RUN_TABLE` | `relations.agent_run` |
+| `OI_AI_STORE_PAYLOADS` | `store_payloads` |
 | `OI_AI_PROJECT_MODEL` | `models.project` |
 | `OI_AI_AGENT_RUN_MODEL` | `models.agent_run` |
 | `OI_AI_SETTING_STORE` | `setting_store` |

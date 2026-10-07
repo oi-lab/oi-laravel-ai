@@ -48,7 +48,9 @@ php artisan vendor:publish --tag=oi-laravel-ai-migrations
 php artisan migrate
 ```
 
-> The `ai_requests` table has nullable foreign keys to your `projects` and `agent_runs` tables (UUID keys). Make sure those tables exist before migrating, or adjust the published migration to match your schema.
+> The `ai_requests` table always has nullable, indexed `project_id` and `agent_run_id` UUID columns. They only get a foreign key when you declare the matching table in `relations.project` / `relations.agent_run` **and** that table exists when you migrate. With the default (`null`) the package installs without any `projects` or `agent_runs` table.
+
+> **Upgrading from 1.2.x:** set `relations.project` to `projects` and `relations.agent_run` to `agent_runs` in your published config (or `OI_AI_PROJECT_TABLE` / `OI_AI_AGENT_RUN_TABLE`) to keep the previous schema and the `AiRequest::project()` / `agentRun()` relations.
 
 ## Configuration
 
@@ -56,14 +58,18 @@ php artisan migrate
 
 | Key | Description |
 |-----|-------------|
-| `models.project` | Host `Project` model the `AiRequest.project_id` FK resolves to. |
-| `models.agent_run` | Host `AgentRun` model the `AiRequest.agent_run_id` FK resolves to. |
+| `relations.project` | Table `ai_requests.project_id` references (foreign key and `AiRequest::project()` relation). `null` (default) disables both. |
+| `relations.agent_run` | Same for `ai_requests.agent_run_id` and `AiRequest::agentRun()`. |
+| `models.project` | Host `Project` model `AiRequest::project()` resolves to, when `relations.project` is set. |
+| `models.agent_run` | Host `AgentRun` model `AiRequest::agentRun()` resolves to, when `relations.agent_run` is set. |
+| `store_payloads` | `true` (default) stores system prompt, input and response; `false` redacts all of them. |
+| `redacted_prompt_types` | Prompt types whose payloads are redacted (`*` wildcards allowed, e.g. `crm.*`). |
 | `setting_store` | Class implementing `SettingStore`, used to persist default models and prompt overrides. Leave `null` to auto-detect: the `oi-lab/oi-laravel-settings` adapter is wired automatically when that package is installed. |
 | `context_binding` | Container binding resolving the "current team" used to scope settings. |
 | `registry.path` | Writable, host-owned registry copy used by the seeder and `ai:update-registry`. Falls back to the bundled `assets/registry.json` when null. |
 | `registry.url` | Canonical raw URL `ai:update-registry` fetches a fresh registry from. |
 
-All keys read from environment variables (`OI_AI_PROJECT_MODEL`, `OI_AI_SETTING_STORE`, `OI_AI_REGISTRY_PATH`, `OI_AI_REGISTRY_URL`, …).
+All keys read from environment variables (`OI_AI_PROJECT_TABLE`, `OI_AI_AGENT_RUN_TABLE`, `OI_AI_STORE_PAYLOADS`, `OI_AI_PROJECT_MODEL`, `OI_AI_SETTING_STORE`, `OI_AI_REGISTRY_PATH`, `OI_AI_REGISTRY_URL`, …).
 
 ## Usage
 

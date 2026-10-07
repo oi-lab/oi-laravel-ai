@@ -5,12 +5,14 @@ namespace OiLab\OiLaravelAi;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Ai\Events\AgentPrompted;
+use Laravel\Ai\Events\PromptingAgent;
 use OiLab\OiLaravelAi\Console\Commands\InstallAiSkillCommand;
 use OiLab\OiLaravelAi\Console\Commands\InstallCommand;
 use OiLab\OiLaravelAi\Console\Commands\UpdateAiRegistryCommand;
 use OiLab\OiLaravelAi\Contracts\SettingStore;
 use OiLab\OiLaravelAi\Listeners\AiRequestListener;
 use OiLab\OiLaravelAi\Stores\OiLaravelSettingsStore;
+use OiLab\OiLaravelAi\Support\InvocationTimer;
 use OiLab\OiLaravelSettings\SettingsManager;
 
 class OiLaravelAiServiceProvider extends ServiceProvider
@@ -23,6 +25,8 @@ class OiLaravelAiServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/oi-laravel-ai.php', 'oi-laravel-ai');
 
         $this->registerSettingStore();
+
+        $this->app->scoped(InvocationTimer::class);
     }
 
     /**
@@ -32,6 +36,7 @@ class OiLaravelAiServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
+        Event::listen(PromptingAgent::class, [AiRequestListener::class, 'handlePrompting']);
         Event::listen(AgentPrompted::class, AiRequestListener::class);
 
         if ($this->app->runningInConsole()) {

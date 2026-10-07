@@ -4,6 +4,26 @@ All notable changes to `oi-lab/oi-laravel-ai` will be documented in this file.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-07
+
+### Added
+
+- `relations.project` / `relations.agent_run` configuration (`null` by default): the table `ai_requests.project_id` / `agent_run_id` reference. `ai_requests` now installs without `projects` and `agent_runs` tables.
+- `store_payloads` and `redacted_prompt_types` configuration: the system prompt, input and response of redacted calls are stored as `sha256:<hash> (<length> car.)`; tokens, model, provider and duration are kept. Types match exactly, `*` wildcards allowed.
+- `Contracts\HasPromptType`: an agent can declare its own prompt type (recorded in `ai_requests.prompt_type` and matched against `redacted_prompt_types`) instead of its class basename.
+- `Support\PayloadRedactor` and `Support\InvocationTimer`.
+
+### Changed
+
+- **Upgrade note:** applications that relied on the `projects` / `agent_runs` foreign keys and on `AiRequest::project()` / `agentRun()` must add `'relations' => ['project' => 'projects', 'agent_run' => 'agent_runs']` to their published config (or set `OI_AI_PROJECT_TABLE` / `OI_AI_AGENT_RUN_TABLE`) to get exactly the 1.2.x schema and relations back on a fresh migration. Databases already migrated are untouched.
+- The `ai_requests` creation migration is edited in place: `project_id` and `agent_run_id` keep the same nullable UUID columns, only the foreign key constraint became conditional, so `migrate:fresh` is unaffected. `agent_run_id` gets its own index.
+- `AiRequest::project()` / `agentRun()` return an always-empty relation (instead of failing on a missing class) when the relation is not configured.
+- `ai:install` only warns about missing tables for the relations declared in the config.
+
+### Fixed
+
+- `ai_requests.duration` records the real duration in milliseconds, measured between the `PromptingAgent` and `AgentPrompted` events of `laravel/ai` (it was always `0`). Streamed calls are not recorded by the package and are not measured; `0` is kept when the start of an invocation was not seen.
+
 ## [1.2.0] - 2026-07-31
 
 ### Changed

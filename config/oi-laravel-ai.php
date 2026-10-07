@@ -23,6 +23,47 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Optional host relations
+    |--------------------------------------------------------------------------
+    |
+    | `ai_requests` always carries the nullable, indexed `project_id` and
+    | `agent_run_id` UUID columns. They are only constrained by a foreign key,
+    | and the `AiRequest::project()` / `AiRequest::agentRun()` relations are only
+    | active, when the matching table name is set here (and, for the foreign key,
+    | when that table exists at migration time). Leave null when the host has no
+    | such tables. Applications upgrading from 1.2.x must set `projects` and
+    | `agent_runs` here to keep the previous schema and relations.
+    |
+    */
+
+    'relations' => [
+        'project' => env('OI_AI_PROJECT_TABLE'),
+        'agent_run' => env('OI_AI_AGENT_RUN_TABLE'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payload storage and redaction
+    |--------------------------------------------------------------------------
+    |
+    | By default the system prompt, the input and the response of every call are
+    | stored in `ai_requests`. Set `store_payloads` to false to never store them,
+    | or list prompt types in `redacted_prompt_types` to redact only those (exact
+    | match on the prompt type, `*` wildcards allowed, e.g. `crm.*`). A redacted
+    | text is replaced with `sha256:<hash> (<length> car.)`; tokens, model,
+    | provider and duration are still recorded.
+    |
+    | The prompt type is the agent class basename, unless the agent implements
+    | `OiLab\OiLaravelAi\Contracts\HasPromptType` and declares its own.
+    |
+    */
+
+    'store_payloads' => env('OI_AI_STORE_PAYLOADS', true),
+
+    'redacted_prompt_types' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Setting store
     |--------------------------------------------------------------------------
     |

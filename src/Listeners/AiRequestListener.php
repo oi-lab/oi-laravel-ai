@@ -2,16 +2,36 @@
 
 namespace OiLab\OiLaravelAi\Listeners;
 
-use Illuminate\Support\Str;
 use Laravel\Ai\Events\AgentPrompted;
+use Laravel\Ai\Events\PromptingAgent;
+use Laravel\Ai\Events\StreamingAgent;
+use OiLab\OiLaravelAi\Contracts\HasPromptType;
 use OiLab\OiLaravelAi\Data\AiRequestData;
 use OiLab\OiLaravelAi\Models\AiModel;
 use OiLab\OiLaravelAi\Models\AiProvider;
 use OiLab\OiLaravelAi\Models\AiRequest;
+use OiLab\OiLaravelAi\Support\InvocationTimer;
+use OiLab\OiLaravelAi\Support\PayloadRedactor;
 use Throwable;
 
 class AiRequestListener
 {
+    public function __construct(
+        private readonly PayloadRedactor $redactor,
+        private readonly InvocationTimer $timer,
+    ) {}
+
+    /**
+     * Remember when a (non-streamed) invocation started so its duration can be
+     * recorded once it completes.
+     */
+    public function handlePrompting(PromptingAgent $event): void
+    {
+        if (! $event instanceof StreamingAgent) {
+            $this->timer->start($event->invocationId);
+        }
+    }
+
     public function handle(AgentPrompted $event): void
     {
         try {
@@ -32,17 +52,19 @@ class AiRequestListener
                 // Agent may not expose project publicly (e.g. SectionUpdaterAgent)
             }
 
+            $promptType = $agent instanceof HasPromptType ? $agent->promptType() : class_basename($agent);
+
             $data = new AiRequestData(
-                prompt_type: class_basename($agent),
-                prompt_system: Str::limit($agent->instructions(), 10000),
-                prompt_input: Str::limit($event->prompt->prompt, 10000),
-                response: Str::limit($event->response->text, 10000),
+                prompt_type: $promptType,
+                prompt_system: $this->redactor->payload($agent->instructions(), $promptType),
+                prompt_input: $this->redactor->payload($event->prompt->prompt, $promptType),
+                response: $this->redactor->payload($event->response->text, $promptType),
                 tokens_input: $event->response->usage->promptTokens,
                 tokens_output: $event->response->usage->completionTokens,
                 tokens_cache_write: $event->response->usage->cacheWriteInputTokens,
                 tokens_cache_read: $event->response->usage->cacheReadInputTokens,
                 tokens_reasoning: $event->response->usage->reasoningTokens,
-                duration: 0,
+                duration: $this->timer->stop($event->invocationId),
                 prompt_schema: null,
                 project_id: $projectId,
                 ai_provider_id: $aiProvider?->id,
