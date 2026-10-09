@@ -2,6 +2,7 @@
 
 namespace OiLab\OiLaravelAi\Stores;
 
+use OiLab\OiLaravelAi\Contracts\ScopedSettingStore;
 use OiLab\OiLaravelAi\Contracts\SettingStore;
 use OiLab\OiLaravelSettings\SettingsManager;
 
@@ -12,13 +13,18 @@ use OiLab\OiLaravelSettings\SettingsManager;
  * default model assignments are persisted in the shared, scoped, typed Setting
  * store. The AI team id maps directly onto a settings scope (null = global).
  */
-class OiLaravelSettingsStore implements SettingStore
+class OiLaravelSettingsStore implements ScopedSettingStore
 {
     public function __construct(protected SettingsManager $settings) {}
 
     public function get(string $key, ?string $teamId = null): mixed
     {
         return $this->settings->get($key, scope: $teamId);
+    }
+
+    public function own(string $key, ?string $teamId = null): mixed
+    {
+        return $this->settings->own($key, scope: $teamId);
     }
 
     public function set(string $key, mixed $value, string $label, string $type = 'string', ?string $teamId = null): void

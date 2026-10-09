@@ -11,8 +11,10 @@ use OiLab\OiLaravelAi\Console\Commands\InstallCommand;
 use OiLab\OiLaravelAi\Console\Commands\UpdateAiRegistryCommand;
 use OiLab\OiLaravelAi\Contracts\SettingStore;
 use OiLab\OiLaravelAi\Listeners\AiRequestListener;
+use OiLab\OiLaravelAi\Services\PromptManager;
 use OiLab\OiLaravelAi\Stores\OiLaravelSettingsStore;
 use OiLab\OiLaravelAi\Support\InvocationTimer;
+use OiLab\OiLaravelAi\Support\PromptRegistry;
 use OiLab\OiLaravelSettings\SettingsManager;
 
 class OiLaravelAiServiceProvider extends ServiceProvider
@@ -27,6 +29,9 @@ class OiLaravelAiServiceProvider extends ServiceProvider
         $this->registerSettingStore();
 
         $this->app->scoped(InvocationTimer::class);
+
+        $this->app->singleton(PromptRegistry::class);
+        $this->app->singleton(PromptManager::class);
     }
 
     /**

@@ -5,7 +5,7 @@ This package is the AI backend for a Laravel application. It does four things:
 1. **Catalog** — a provider/model catalog with per-1M-token pricing, persisted in the database and seeded from a JSON registry (`assets/registry.json`).
 2. **Usage tracking** — listens to `Laravel\Ai\Events\AgentPrompted` and records every agent call (tokens, model, provider, project) into the `ai_requests` table.
 3. **Cost reporting** — aggregates recorded usage into per-project, per-agent, and per-model cost summaries.
-4. **Prompt registry** — a single source of truth for the agents' system prompts, with `:variable` placeholder compilation.
+4. **Editable prompts** — the app and its packages declare their prompts in `PromptRegistry`; `Prompts::render()` resolves team override → global override → default and fills the `:variable` placeholders.
 
 The package is host-agnostic: it references the host app's `Project` and `AgentRun` models through config, and persists settings through a `SettingStore` contract — auto-wired to `oi-lab/oi-laravel-settings` when installed, or a host-provided implementation.
 
@@ -39,7 +39,36 @@ $summary = app(AiUsageReporter::class)->summaryForProjects($projectIds, $start, 
 $summary->estimated_cost_usd; // float
 ```
 
-`AiPromptVariableRegistry` exposes a constant per agent (`COMMIT_ANALYZER`, `DOC_WRITER`, `DOC_REVIEWER`, …), `keys()`, `label()`, `defaultPrompt()`, `variablesFor()`, `globals()`, and `compile()`. The `app_name` global is injected automatically at compile time.
+## Editable prompts
+
+```php
+use OiLab\OiLaravelAi\Data\AiPromptVariableData;
+use OiLab\OiLaravelAi\Data\PromptDefinition;
+use OiLab\OiLaravelAi\Facades\Prompts;
+use OiLab\OiLaravelAi\Support\PromptRegistry;
+
+// In a service provider's boot(): declare the prompt and its default template.
+app(PromptRegistry::class)->define(new PromptDefinition(
+    key: 'desk.ticket_analyse.system',
+    label: 'Analyse d\'un ticket',
+    default: "Tu analyses les tickets de :app_name.\nTypes :\n:ticket_types",
+    variables: [new AiPromptVariableData('ticket_types', 'Types (code : nom)', '- BUG : Bug')],
+    group: 'Desk',
+));
+
+// In the agent: the team override, else the global one, else the default.
+public function instructions(): string
+{
+    return Prompts::render('desk.ticket_analyse.system', ['ticket_types' => $types], teamId: $this->teamId);
+}
+```
+
+- Always pass the team explicitly (`null` = global): agents run in queued jobs, without a current team.
+- Overrides are string settings `PROMPTS.<key>` (`config('oi-laravel-ai.prompts.setting_prefix')`) written through the `SettingStore`; the store must implement `ScopedSettingStore` to tell a team's own override from the global one (the `oi-laravel-settings` adapter does, from settings 1.1).
+- `teamOverridable: false` keeps a single global version. `PromptKind` tells system instructions, message templates and MCP instructions apart.
+- Substitution is a single `strtr` pass: a value containing `:x` is never expanded again. Globals: `:app_name`, `:today` (add more with `PromptRegistry::global()`).
+- `Prompts::fingerprint()` hashes the template in use, to version results produced by an edited prompt.
+- `AiPromptVariableRegistry` (hardcoded constants) is deprecated in favour of the registry.
 
 ## Usage tracking
 

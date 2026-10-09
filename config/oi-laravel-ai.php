@@ -107,4 +107,19 @@ return [
         'url' => env('OI_AI_REGISTRY_URL'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Editable prompts
+    |--------------------------------------------------------------------------
+    |
+    | Overrides of the prompts declared in the PromptRegistry are stored through
+    | the setting store, as string settings named after this prefix followed by
+    | the prompt key (e.g. `PROMPTS.crm.mail.system`).
+    |
+    */
+
+    'prompts' => [
+        'setting_prefix' => env('OI_AI_PROMPTS_SETTING_PREFIX', 'PROMPTS.'),
+    ],
+
 ];

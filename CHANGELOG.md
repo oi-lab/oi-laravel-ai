@@ -4,6 +4,19 @@ All notable changes to `oi-lab/oi-laravel-ai` will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-09
+
+### Added
+
+- Editable prompts: `Support\PromptRegistry` is the catalogue the application and its packages fill while booting (`Data\PromptDefinition`: key, label, group, kind, default template, variables, `teamOverridable`). `Services\PromptManager` and the `Facades\Prompts` facade resolve a prompt layer by layer: the team's override, then the global override, then the default. They also render it (`render()`, single-pass `:variable` substitution), and back a settings screen with `template()`, `source()`, `save()`, `reset()`, `preview()` and `fingerprint()`. Overrides are string settings named `PROMPTS.<key>` (`prompts.setting_prefix`).
+- `Enums\PromptKind` (`system`, `message`, `mcp`) and `Enums\PromptSource` (`default`, `global`, `team`).
+- `Contracts\ScopedSettingStore`: a `SettingStore` that can read one layer only. `Stores\OiLaravelSettingsStore` implements it, which requires `oi-lab/oi-laravel-settings` ^1.1.
+- Globals `:app_name` and `:today`; more can be declared with `PromptRegistry::global()`.
+
+### Deprecated
+
+- `Support\AiPromptVariableRegistry`: declare the prompts in the `PromptRegistry` instead.
+
 ## [1.3.0] - 2026-10-07
 
 ### Added

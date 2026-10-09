@@ -3,6 +3,7 @@
 namespace OiLab\OiLaravelAi\Support;
 
 use OiLab\OiLaravelAi\Data\AiPromptVariableData;
+use OiLab\OiLaravelAi\Facades\Prompts;
 
 /**
  * Single source of truth for the AI agents' system prompts: the human label, the
@@ -13,6 +14,9 @@ use OiLab\OiLaravelAi\Data\AiPromptVariableData;
  * + App\Data\Mail\MailVariableData): the registry describes the available
  * variables, while {@see self::compile()} performs the `:variable` substitution
  * exactly like MailContentData::replaceVariables() does for emails.
+ *
+ * @deprecated 1.4.0 Declare editable prompts in {@see PromptRegistry} and render
+ *             them with {@see Prompts}.
  */
 final class AiPromptVariableRegistry
 {

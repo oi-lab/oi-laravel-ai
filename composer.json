@@ -29,7 +29,7 @@
         "spatie/laravel-data": "^4.23"
     },
     "suggest": {
-        "oi-lab/oi-laravel-settings": "Recommended SettingStore backend: scoped, typed values automatically wired for AI prompt and model settings."
+        "oi-lab/oi-laravel-settings": "(^1.1) Recommended SettingStore backend: scoped, typed values automatically wired for AI prompt and model settings."
     },
     "require-dev": {
         "laravel/pint": "^1.30",
