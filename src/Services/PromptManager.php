@@ -178,7 +178,7 @@ class PromptManager
      */
     protected function read(string $key, ?string $teamId): ?string
     {
-        $store = $this->container->make(SettingStore::class);
+        $store = $this->container->bound(SettingStore::class) ? $this->container->make(SettingStore::class) : null;
 
         if ($store === null) {
             return null;
@@ -207,7 +207,9 @@ class PromptManager
 
     protected function store(): SettingStore
     {
-        return $this->container->make(SettingStore::class)
+        $store = $this->container->bound(SettingStore::class) ? $this->container->make(SettingStore::class) : null;
+
+        return $store
             ?? throw new LogicException('No setting store is bound: prompt overrides cannot be stored.');
     }
 
