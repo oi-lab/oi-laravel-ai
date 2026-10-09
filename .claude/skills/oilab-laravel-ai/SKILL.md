@@ -5,7 +5,7 @@ This package is the AI backend for a Laravel application. It does four things:
 1. **Catalog** — a provider/model catalog with per-1M-token pricing, persisted in the database and seeded from a JSON registry (`assets/registry.json`).
 2. **Usage tracking** — listens to `Laravel\Ai\Events\AgentPrompted` and records every agent call (tokens, model, provider, project) into the `ai_requests` table.
 3. **Cost reporting** — aggregates recorded usage into per-project, per-agent, and per-model cost summaries.
-4. **Prompt registry** — a single source of truth for the agents' system prompts, with `:variable` placeholder compilation.
+4. **Editable prompts** — the app and its packages declare their prompts in `PromptRegistry`; `Prompts::render()` resolves team override → global override → default and fills the `:variable` placeholders.
 
 The package is host-agnostic: it references the host app's `Project` and `AgentRun` models through config, and persists settings through a `SettingStore` contract — auto-wired to `oi-lab/oi-laravel-settings` when installed, or a host-provided implementation.
 
@@ -39,7 +39,36 @@ $summary = app(AiUsageReporter::class)->summaryForProjects($projectIds, $start, 
 $summary->estimated_cost_usd; // float
 ```
 
-`AiPromptVariableRegistry` exposes a constant per agent (`COMMIT_ANALYZER`, `DOC_WRITER`, `DOC_REVIEWER`, …), `keys()`, `label()`, `defaultPrompt()`, `variablesFor()`, `globals()`, and `compile()`. The `app_name` global is injected automatically at compile time.
+## Editable prompts
+
+```php
+use OiLab\OiLaravelAi\Data\AiPromptVariableData;
+use OiLab\OiLaravelAi\Data\PromptDefinition;
+use OiLab\OiLaravelAi\Facades\Prompts;
+use OiLab\OiLaravelAi\Support\PromptRegistry;
+
+// In a service provider's boot(): declare the prompt and its default template.
+app(PromptRegistry::class)->define(new PromptDefinition(
+    key: 'desk.ticket_analyse.system',
+    label: 'Analyse d\'un ticket',
+    default: "Tu analyses les tickets de :app_name.\nTypes :\n:ticket_types",
+    variables: [new AiPromptVariableData('ticket_types', 'Types (code : nom)', '- BUG : Bug')],
+    group: 'Desk',
+));
+
+// In the agent: the team override, else the global one, else the default.
+public function instructions(): string
+{
+    return Prompts::render('desk.ticket_analyse.system', ['ticket_types' => $types], teamId: $this->teamId);
+}
+```
+
+- Always pass the team explicitly (`null` = global): agents run in queued jobs, without a current team.
+- Overrides are string settings `PROMPTS.<key>` (`config('oi-laravel-ai.prompts.setting_prefix')`) written through the `SettingStore`; the store must implement `ScopedSettingStore` to tell a team's own override from the global one (the `oi-laravel-settings` adapter does, from settings 1.1).
+- `teamOverridable: false` keeps a single global version. `PromptKind` tells system instructions, message templates and MCP instructions apart.
+- Substitution is a single `strtr` pass: a value containing `:x` is never expanded again. Globals: `:app_name`, `:today` (add more with `PromptRegistry::global()`).
+- `Prompts::fingerprint()` hashes the template in use, to version results produced by an edited prompt.
+- `AiPromptVariableRegistry` (hardcoded constants) is deprecated in favour of the registry.
 
 ## Usage tracking
 
@@ -72,7 +101,9 @@ php artisan vendor:publish --tag=oi-laravel-ai-migrations
 
 Key `oi-laravel-ai` config:
 
-- `models.project` / `models.agent_run` — host model classes the `AiRequest` FKs resolve to.
+- `relations.project` / `relations.agent_run` — table names the `ai_requests` FKs and `AiRequest::project()` / `agentRun()` use; `null` (default) = no FK and an empty relation.
+- `models.project` / `models.agent_run` — host model classes those relations resolve to when configured.
+- `store_payloads` / `redacted_prompt_types` — redact the system prompt, input and response (stored as `sha256:<hash> (<length> car.)`); an agent may implement `Contracts\HasPromptType` to declare its own prompt type.
 - `setting_store` — `OiLab\OiLaravelAi\Contracts\SettingStore` implementation (class string). Leave `null` to auto-detect: the `oi-lab/oi-laravel-settings` adapter is wired automatically when installed (listed under `suggest`); with no store bound, catalog seeding still runs but settings seeding is skipped.
 - `context_binding` — container binding resolving the "current team" used to scope settings.
 - `registry.path` — writable, host-owned copy of the registry used by the seeder and `ai:update-registry`; falls back to the bundled asset when null.
@@ -80,7 +111,7 @@ Key `oi-laravel-ai` config:
 
 ## Host integration checklist
 
-- Provide `projects` and `agent_runs` tables (UUID keys) before running the package migrations — the `ai_requests` FKs reference them.
+- `projects` / `agent_runs` tables are optional: declare them in `relations.*` (before migrating) to get the foreign keys and relations; upgrading from 1.2.x requires setting both keys to keep the old schema.
 - Install `oi-lab/oi-laravel-settings` for zero-config settings, or implement `SettingStore` and point `setting_store` at it (or leave it `null`).
 - Bind the `context_binding` if you scope settings per team.
 

@@ -14,7 +14,7 @@ The AI backend for your Laravel application. It maintains a provider/model catal
 - **Provider & model catalog** — `AiProvider` / `AiModel` tables with per-1M-token input/output pricing, seeded from a JSON registry shipped with the package.
 - **Automatic usage tracking** — a listener records every `Laravel\Ai\Events\AgentPrompted` event into `ai_requests` (tokens, model, provider, project), with zero host code.
 - **Cost reporting** — `AiUsageReporter` aggregates usage into per-project, per-agent, and per-model cost summaries over any period.
-- **Prompt registry** — `AiPromptVariableRegistry` is the single source of truth for agent system prompts, with `:variable` placeholder compilation (mirrors mail templating).
+- **Editable prompts** — the application and its packages declare their prompts in the `PromptRegistry`; `Prompts::render()` reads the team override, then the global one, then the default, through the `SettingStore`, and fills the `:variable` placeholders.
 - **Self-updating tariffs** — `php artisan ai:update-registry` fetches a fresh catalog and pricing from a remote URL and persists it locally.
 - **Host-agnostic** — resolves the host's `Project` / `AgentRun` models through config and persists settings through a `SettingStore` contract.
 
@@ -115,18 +115,31 @@ $summary->by_agent_type;      // [['prompt_type' => ..., 'count' => ..., ...], .
 $summary->by_model;           // [['model_name' => ..., 'count' => ..., ...], ...]
 ```
 
-### Prompt registry
+### Editable prompts
 
 ```php
-use OiLab\OiLaravelAi\Support\AiPromptVariableRegistry;
+use OiLab\OiLaravelAi\Data\AiPromptVariableData;
+use OiLab\OiLaravelAi\Data\PromptDefinition;
+use OiLab\OiLaravelAi\Facades\Prompts;
+use OiLab\OiLaravelAi\Support\PromptRegistry;
 
-$prompt = AiPromptVariableRegistry::compile(
-    AiPromptVariableRegistry::defaultPrompt(AiPromptVariableRegistry::DOC_WRITER),
-    ['project_name' => 'Acme', 'language' => 'français'],
-);
+// In a service provider's boot(): declare the prompt and its default template.
+app(PromptRegistry::class)->define(new PromptDefinition(
+    key: 'desk.ticket_analyse.system',
+    label: 'Analyse d\'un ticket',
+    default: "Tu analyses les tickets de :app_name.\nTypes :\n:ticket_types",
+    variables: [new AiPromptVariableData('ticket_types', 'Types (code : nom)', '- BUG : Bug')],
+    group: 'Desk',
+));
+
+// In the agent: the team override, else the global one, else the default.
+public function instructions(): string
+{
+    return Prompts::render('desk.ticket_analyse.system', ['ticket_types' => $types], teamId: $this->teamId);
+}
 ```
 
-The `app_name` global is injected automatically. Use `AiPromptVariableRegistry::keys()`, `label()`, and `variablesFor()` to build a settings UI.
+`Prompts::template()`, `source()`, `save()`, `reset()`, `preview()` and `fingerprint()` back a settings screen. A definition with `teamOverridable: false` only has a global version. `AiPromptVariableRegistry` is deprecated.
 
 ## Commands
 
